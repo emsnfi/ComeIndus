@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace iWebSite_ComeIndus.Controllers
@@ -202,6 +203,54 @@ namespace iWebSite_ComeIndus.Controllers
         public int _DB_Execute_Async(string strSql)
         {
             return DBC.ExecCmdAsync(strSql);
+        }
+
+        /// <summary>
+        /// SHA256加密
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public string SHA256_Encryption(string str)//SHA256
+        {
+            if(!string.IsNullOrEmpty(str))
+            {
+                //實體化SHA256類別
+                SHA256CryptoServiceProvider SHA256 = new SHA256CryptoServiceProvider();
+
+                //將字串編碼成 UTF8 位元組陣列
+                var bytes = System.Text.Encoding.UTF8.GetBytes(str);
+
+                //加密(SHA256) 並且將結果放到ans變數內
+                string Ans = BitConverter.ToString(SHA256.ComputeHash(bytes));
+
+                //Return
+                return Ans;
+            }
+            else
+            {
+                return "";
+            }
+        }
+
+        /// <summary>
+        /// SHA256比對
+        /// </summary>
+        /// <param name="OriginalKey"></param>
+        /// <param name="CheckKey"></param>
+        /// <returns></returns>
+        public bool SHA256_Compare(string OriginalKey, string CheckKey)
+        {
+            //比較兩組KEY是否一樣
+            if (OriginalKey == SHA256_Encryption(CheckKey))
+            {
+                //一樣的話True
+                return true;
+            }
+            else 
+            {
+                //不一樣的話False
+                return false;
+            }
         }
     }
 }

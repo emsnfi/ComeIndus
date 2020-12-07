@@ -33,14 +33,33 @@ namespace iWebSite_ComeIndus.Controllers
         [HttpPost]
         public ActionResult Login(AccountModels Model)
         {
-            //DB Connection
-            DBC.CheckDBConnection();
+            //SQL Insert Member
+            var sqlStr = string.Format("select Account,Password from [dbo].[Member] where Account = {0}",SqlVal2(Model.Account));
 
-            //return null;
+            //SQL Check
+            var data = _DB_GetData(sqlStr);
 
-            return View(Model);
-
-            //return Redirect("/Account/Login");
+            //資料庫內是否有此帳號
+            if(data.Rows.Count > 0)
+            {
+                //帳號與密碼是否相符
+                if (Model.Account == data.Rows[0].ItemArray.GetValue(0).ToString() &&
+                SHA256_Compare(data.Rows[0].ItemArray.GetValue(1).ToString(),Model.Password))
+                {
+                    //登入成功
+                    return Redirect("/home/index");
+                }
+                else
+                {
+                    //登入失敗 帳號或密碼錯誤
+                    return View(Model);
+                }
+            }
+            else
+            {
+                //登入失敗 找不到此帳號
+                return View(Model);
+            }
         }
 
         /// <summary>
@@ -91,7 +110,7 @@ namespace iWebSite_ComeIndus.Controllers
                     "{9}," +
                     "{10}",
                     SqlVal2(Model.Account),
-                    SqlVal2(Model.Password),
+                    SqlVal2(SHA256_Encryption(Model.Password)),
                     SqlVal2(Model.Username),
                     SqlVal2(Model.Gender),
                     SqlVal2(Model.Birthday),
@@ -109,10 +128,12 @@ namespace iWebSite_ComeIndus.Controllers
             //新增是否成功
             if(check == 1)
             {
+                //註冊成功
                 return Redirect("/Home/index");
             }
             else
             {
+                //註冊失敗
                 return View(Model);
             }
         }
